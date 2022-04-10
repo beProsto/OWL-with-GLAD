@@ -1,6 +1,6 @@
 ## [OWL](https://github.com/beProsto/OWL) (Open Windowing Library) with [GLAD](https://glad.dav1d.de/) (OpenGL Loader)
 
-This project aims to be a project using [`OWL`](https://github.com/beProsto/OWL) with modern OpenGL (3.3 to be exact1), using [`GLAD`](https://glad.dav1d.de/) as a binding loader.
+This aims to be a project using [`OWL`](https://github.com/beProsto/OWL) with modern OpenGL (3.3 to be exact), using [`GLAD`](https://glad.dav1d.de/) as a binding loader.
 Using GLAD instead of GLEW makes the project free of any dll files.
 
 To clone the project:
