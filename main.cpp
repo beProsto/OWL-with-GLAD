@@ -6,6 +6,8 @@
 #include <OWL/time.hpp>
 #include <OWL/GLContext.hpp>
 
+#include "math/math.hpp"
+
 int Main(const std::vector<std::string>& _args) {
 	OWL::GLContext context;
 	OWL::Window window(&context, "OWL Gamepad Example", OWL::Vec2i(0), OWL::Vec2i(1280, 720));
@@ -18,23 +20,32 @@ int Main(const std::vector<std::string>& _args) {
 
 	float vertices[] = {
 		-0.5f, -0.5f,
-		0.0f,  0.5f,
-		0.5f, -0.5f
+		-0.5f,  0.5f,
+		 0.5f,  0.5f,
+		 
+		 0.5f,  0.5f,
+		 0.5f, -0.5f,
+		-0.5f, -0.5f,
 	};
 	std::string vertexShaderSource = R"V0G0N(#version 330 core
 		layout(location = 0) in vec2 a_pos;
 		
-		uniform vec2 u_size;
+		uniform mat4 u_mat;
+
+		out vec3 v_col;
 
 		void main() {
-			gl_Position = vec4(a_pos * u_size, 0.0, 1.0);
+			gl_Position = u_mat * vec4(a_pos, 0.0, 1.0);
+			v_col = vec3(a_pos+0.5, 0.5);
 		}
 	)V0G0N";
 	std::string fragmentShaderSource = R"V0G0N(#version 330 core
 		layout(location = 0) out vec4 col;
 
+		in vec3 v_col;
+
 		void main() {
-			col = vec4(0.0, 1.0, 0.0, 1.0);
+			col = vec4(v_col, 1.0);
 		}
 	)V0G0N";
 	
@@ -94,6 +105,12 @@ int Main(const std::vector<std::string>& _args) {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	Math::Mat4 transform;
+	Math::Mat4 projection;
+
+	OWL::Vec2f lastPosition = window.Mouse.GetPosition();
+	OWL::Vec2f rotation;
+
 	OWL::FPSLimiter eventDelay(60);
 	while(window.IsRunning()) {
 		eventDelay.Start();
@@ -110,9 +127,21 @@ int Main(const std::vector<std::string>& _args) {
 		glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUniform2f(glGetUniformLocation(shaderProgram, "u_size"), 1.0f/window.GetAspect(), 1.0f);
+		// Math::_Mat4::RotateZ(&rotation[0], 0.1f);
+		projection = Math::Mat4::Orthographic(-window.GetAspect(), window.GetAspect(), -1.0f, 1.0f, -1.0f, 1.0f);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		OWL::Vec2f thisPosition = window.Mouse.GetPosition();
+		OWL::Vec2f diff = thisPosition - lastPosition;
+		lastPosition = thisPosition;
+
+		if(window.Mouse.IsButtonPressed(OWL::Window::MouseEvent::Left)) {
+			rotation += OWL::Vec2f(-diff.y, -diff.x) * OWL::Vec2f(0.01f);
+			transform = Math::Mat4::RotateX(rotation.x) * Math::Mat4::RotateY(rotation.y);
+		}
+
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "u_mat"), 1, GL_FALSE, &(projection * transform)[0]);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		context.SwapBuffers(); 
 		eventDelay.End();
