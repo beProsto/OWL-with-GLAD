@@ -1,5 +1,5 @@
-CC = cc
-CXX = c++
+CC = clang
+CXX = clang++
 CXX_FLAGS = -std=c++17
 
 ifeq ($(OS),Windows_NT)
@@ -17,7 +17,7 @@ run: $(EXE)
 	./$(EXE)
 
 $(EXE): main.cpp objs/glad.o
-	$(CXX) main.cpp objs/glad.o $(GLAD_FLAGS) $(OWL_FLAGS) $(CXX_FLAGS) -o app
+	$(CXX) main.cpp objs/glad.o $(GLAD_FLAGS) $(OWL_FLAGS) $(CXX_FLAGS) -o $(EXE)
 
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o

@@ -12,5 +12,5 @@ Then to compile and run the project:
 make
 ```
 
-Given you have [`make`](http://gnuwin32.sourceforge.net/packages/make.htm) and some `C`/`C++` compiler installed, the project should run!
+Given you have [`make`](http://gnuwin32.sourceforge.net/packages/make.htm) and the [`clang`](https://clang.llvm.org/get_started.html) `C`/`C++` compiler installed, the project should run!
 If you have any problems, please tell me about them!
