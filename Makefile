@@ -1,6 +1,6 @@
 CC = clang
 CXX = clang++
-CXX_FLAGS = -std=c++17
+CXX_FLAGS = -std=c++17 -Wall -Wpedantic
 
 ifeq ($(OS),Windows_NT)
 EXE = app.exe
