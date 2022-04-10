@@ -37,15 +37,17 @@ int Main(const std::vector<std::string>& _args) {
 			col = vec4(0.0, 1.0, 0.0, 1.0);
 		}
 	)V0G0N";
+	
 
 	std::cout << "SHADER SOURCE CODE:\n" << vertexShaderSource << std::endl << fragmentShaderSource << std::endl;
 
 	unsigned int vertexArrayObject = 0;
-	glGenVertexArrays(1, &vertexArrayObject);
+	typedef void(*ptr)(unsigned int, unsigned int*);
+	((ptr)OWL::GLContext::GetProcAddress("glGenVertexArrays"))(1, &vertexArrayObject);
 	glBindVertexArray(vertexArrayObject);
 
 	unsigned int vertexBufferObject = 0;
-	glGenBuffers(1, &vertexBufferObject);
+	((ptr)OWL::GLContext::GetProcAddress("glGenBuffers"))(1, &vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 

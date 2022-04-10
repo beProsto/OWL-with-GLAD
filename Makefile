@@ -21,3 +21,9 @@ $(EXE): main.cpp objs/glad.o
 
 objs/glad.o: ext/glad/src/glad.c
 	$(CC) ext/glad/src/glad.c $(GLAD_FLAGS) $(CC_FLAGS) -c -o objs/glad.o
+
+clean:
+	-rm $(EXE)
+	-rm objs/glad.o
+	-del $(EXE)
+	-del objs\glad.o
