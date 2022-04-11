@@ -10,7 +10,7 @@
 
 int Main(const std::vector<std::string>& _args) {
 	OWL::GLContext context;
-	OWL::Window window(&context, "OWL Gamepad Example", OWL::Vec2i(0), OWL::Vec2i(1280, 720));
+	OWL::Window window(&context, "OWL + GLAD = <3", OWL::Vec2i(0), OWL::Vec2i(1280, 720));
 	window.SetMaxGamepads(0);
 
 	if(!gladLoadGLLoader((GLADloadproc)OWL::GLContext::GetProcAddress)) {
@@ -19,24 +19,33 @@ int Main(const std::vector<std::string>& _args) {
 	}
 
 	float vertices[] = {
-		-0.5f, -0.5f,
-		-0.5f,  0.5f,
-		 0.5f,  0.5f,
+		-0.5f, -0.5f,  0.0f,
+		-0.5f,  0.5f,  0.0f,
+		 0.5f,  0.5f,  0.0f,
 		 
-		 0.5f,  0.5f,
-		 0.5f, -0.5f,
-		-0.5f, -0.5f,
+		 0.5f,  0.5f,  0.0f,
+		 0.5f, -0.5f,  0.0f,
+		-0.5f, -0.5f,  0.0f,
+		
+		 0.0f, -0.5f, -0.5f,
+		 0.0f,  0.5f, -0.5f,
+		 0.0f,  0.5f,  0.5f,
+		 
+		 0.0f,  0.5f,  0.5f,
+		 0.0f, -0.5f,  0.5f,
+		 0.0f, -0.5f, -0.5f,
 	};
+
 	std::string vertexShaderSource = R"V0G0N(#version 330 core
-		layout(location = 0) in vec2 a_pos;
+		layout(location = 0) in vec3 a_pos;
 		
 		uniform mat4 u_mat;
 
 		out vec3 v_col;
 
 		void main() {
-			gl_Position = u_mat * vec4(a_pos, 0.0, 1.0);
-			v_col = vec3(a_pos+0.5, 0.5);
+			gl_Position = u_mat * vec4(a_pos, 1.0);
+			v_col = vec3(a_pos+0.5);
 		}
 	)V0G0N";
 	std::string fragmentShaderSource = R"V0G0N(#version 330 core
@@ -63,7 +72,7 @@ int Main(const std::vector<std::string>& _args) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// first attribute is at location=0, it's made of 2 floats, the stride has byte size of 2*4(size of 32 bit float) and the attribute is at offset 0 from the stride's start
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);  
 
 	char* vertexShaderSourcePointer = &vertexShaderSource[0];
@@ -105,11 +114,15 @@ int Main(const std::vector<std::string>& _args) {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	glEnable(GL_DEPTH_TEST);
+	
 	Math::Mat4 transform;
 	Math::Mat4 projection;
 
 	OWL::Vec2f lastPosition = window.Mouse.GetPosition();
 	OWL::Vec2f rotation;
+
+	float scale = -2.0f;
 
 	OWL::FPSLimiter eventDelay(60);
 	while(window.IsRunning()) {
@@ -123,25 +136,27 @@ int Main(const std::vector<std::string>& _args) {
 			window.SetFullScreen(!window.IsFullScreen());
 		}
 
+		scale += window.Mouse.GetWheelRotation() / 1000.0f;
+
 		glViewport(0, 0, window.GetSize().x, window.GetSize().y);
-		glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.2f, 0.0f, 0.6f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Math::_Mat4::RotateZ(&rotation[0], 0.1f);
-		projection = Math::Mat4::Orthographic(-window.GetAspect(), window.GetAspect(), -1.0f, 1.0f, -1.0f, 1.0f);
+		projection = Math::Mat4::Perspective(M_PI/2.0f, window.GetAspect(), 0.1f, 100.0f) * Math::Mat4::Translate(0.0f, 0.0f, scale);
 
 		OWL::Vec2f thisPosition = window.Mouse.GetPosition();
 		OWL::Vec2f diff = thisPosition - lastPosition;
 		lastPosition = thisPosition;
 
 		if(window.Mouse.IsButtonPressed(OWL::Window::MouseEvent::Left)) {
-			rotation += OWL::Vec2f(-diff.y, -diff.x) * OWL::Vec2f(0.01f);
+			rotation += OWL::Vec2f(diff.y, diff.x) * OWL::Vec2f(0.01f);
 			transform = Math::Mat4::RotateX(rotation.x) * Math::Mat4::RotateY(rotation.y);
 		}
 
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "u_mat"), 1, GL_FALSE, &(projection * transform)[0]);
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
 
 		context.SwapBuffers(); 
 		eventDelay.End();
